@@ -225,11 +225,13 @@ def process_res_signal(res):
     ret = []
     if res:
         for e in res['data']['signals']['edges']:
+            ret.append(e['node'])
+            """
             ret.append(
                 {'id': e['node']['id'], 'timestamp': e['node']['timestamp'], 'createdAt': e['node']['createdAt'],
                  'pointId': e['node']['pointId'], 'unit': e['node']['unit'], 'type': e['node']['type'],
                  "numericValue": e['node']['data']['numericValue'], "rawValue": e['node']['data']['rawValue']})
-
+            """
     return ret
 """
 query GET_MY_POINT{
