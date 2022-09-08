@@ -1,6 +1,23 @@
 import requests
 import json
 
+units = { "Temperature": ["CELSIUS_DEGREES","FAHRENHEIT_DEGREES","KELVINS"],
+          "Sound": ["DECIBELS","BEATS_PER_MINUTE"],
+          "Position":["LATITUDE_DEGREES","LONGITUDE_DEGREES"],
+          "Speed, acceleration":["METERS_PER_SECOND","KILOMETERS_PER_HOUR","METERS_PER_SECOND_SQUARED"],
+          "Distance":["METERS","KILOMETERS","CENTIMETERS","MILLIMETERS"],
+          "Time":["SECONDS"],
+          "Storage, speed":["BITS","BITS_PER_SECOND"],
+          "Weight":["GRAMS","KILOGRAMS"],
+          "Volume":["LITERS","CUBIC_METERS"],
+          "Pressure":["PASCAL"],
+          "Light":["LUX"],
+          "Energy":["VOLTS","MILLIVOLTS","MILLIAMPERES"],
+          "Flow":["CUBIC_METERS_PER_SECOND","LITERS_PER_SECOND","CUBIC_METERS_PER_HOUR","LITERS_PER_HOURa","KILOGRAMS_PER_HOUR"],
+          "Humidity":["GRAMS_PER_METERS_CUBIC"],
+          "Turbidity":["NTU"],
+          "Generic":["GENERIC","DEGREES","PERCENTS","UNKNOWN"]}
+
 def manage_response(res):
     if res.status_code != 200:
         print("Send error!")
@@ -13,8 +30,8 @@ def manage_response(res):
             print(res_json["errors"])
             return None
         else:
-            print("Success!")
-            print(f"res_json:\n{res_json}")
+            #print("Success!")
+            #print(f"res_json:\n{res_json}")
             return res_json
 
 def space_create(target, ten_id, ten_k, name=None):
@@ -64,11 +81,10 @@ def space_list(target, ten_id, ten_k):
     except Exception as e:
         print(f"Exception:{e}")
 
-    res = manage_response(res)
-
     if not res:
         return None
 
+    res = manage_response(res)
     ret = []
     for sp in res['data']['spaces']['edges']:
         ret.append({'id':sp['node']['id'], 'name':sp['node']['name']})
@@ -143,7 +159,7 @@ def point_list(target, ten_id, ten_k, space_id=None):
         if sp['node']['id'] == space_id:
             bId = True
             for p in sp['node']['points']['edges']:
-                ret.append({'id': p['node']['id'], 'name': p['node']['name']})
+                ret.append({'id': p['node']['id'], 'name': p['node']['name'], 'metadata': p['node']['metadata']})
         else:
             if bId:
                 break
