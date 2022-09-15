@@ -71,6 +71,7 @@ def space_list(target, ten_id, ten_k):
     query = """query LIST_SPACES_WITH_POINTS {spaces {edges {node {
     id
     name
+    metadata
     points {edges {node {id
     name}}}}}}}
     """
@@ -87,7 +88,7 @@ def space_list(target, ten_id, ten_k):
     res = manage_response(res)
     ret = []
     for sp in res['data']['spaces']['edges']:
-        ret.append({'id':sp['node']['id'], 'name':sp['node']['name']})
+        ret.append({'id':sp['node']['id'], 'name':sp['node']['name'],'metadata':sp['node']['metadata']})
 
     return ret
 
