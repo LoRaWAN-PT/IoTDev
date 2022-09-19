@@ -3,9 +3,33 @@ import configparser
 import numpy as np
 from Graph_API import *
 from Webhook_API import *
+from process_json import *
+
+def register_signals(target, ten_id, ten_k, data, points_map):
+    for d in data:
+        dd = d['content']['DevEUI_uplink']
+        if not dd['DevEUI'] in points_map:
+            print(f"No device DevEUI:{dd['DevEUI']}")
+            continue
+        arguments = {}
+
+        if dd['DriverCfg']['mod']['mId'] == "temp":
+            arguments['unit'] = "CELSIUS_DEGREES"
+            arguments['value'] = float(int(dd['payload_hex'][6:8],16))/10
+            arguments['type'] = "Air temperature"
+        else:
+            continue
+
+        arguments['point_id'] = points_map[dd['DevEUI']]
+        arguments['timestamp'] = dd['Time']
+
+        print(f"arguments:{arguments}")
+        #signal_create(target, ten_id, ten_k, **arguments)
+        #signal_create(target, ten_id, ten_k, point_id=points_map[dd['DevEUI']], unit="CELSIUS_DEGREES", value=None, type=None, timestamp=None)
 
 confs = configparser.ConfigParser()
-confs.read("config_dev.ini")
+#confs.read("config_dev.ini")
+confs.read("config.ini")
 target = confs['D4API']['target']
 ten_id = confs['D4API']['ten_id']
 ten_k = confs['D4API']['ten_k_rw']
@@ -50,9 +74,20 @@ for s in signals:
 """
 
 data = get_requests(url, token)
-print(f"data:{len(data)}")
-for d in data:
+data_graph = proc_resp_json(get_requests(url, token))
+#print(f"data:{len(data)}")
+for d in data_graph:
     print(f"d:{d}")
+
+pnts = point_list(target,ten_id,ten_k)
+#print(f"pnts:{pnts}")
+for p in pnts:
+    print(f"p:{p}")
+
+map = map_point_device(pnts)
+print(f"map:{map}")
+register_signals(target,ten_id,ten_k,data_graph,map)
+
 
 
 

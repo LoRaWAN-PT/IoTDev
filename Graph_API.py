@@ -123,9 +123,9 @@ def point_create(target, ten_id, ten_k, name=None, space_id=None):
         return res['data']['point']['create']['id']
 
 def point_list(target, ten_id, ten_k, space_id=None):
-    if not space_id:
-        print(f"Specify space id.")
-        return None
+    #if not space_id:
+    #        print(f"Specify space id.")
+        #return None
     if not target:
         print(f"Target not specified.")
         return None
@@ -153,7 +153,15 @@ def point_list(target, ten_id, ten_k, space_id=None):
 
     if not res:
         return None
+    #else:
+     #   return res
 
+    if space_id:
+        return process_point_id(res, space_id)
+    else:
+        return process_point_all(res)
+
+def process_point_id(res, space_id):
     ret = []
     bId = False
     for sp in res['data']['spaces']['edges']:
@@ -164,6 +172,23 @@ def point_list(target, ten_id, ten_k, space_id=None):
         else:
             if bId:
                 break
+    return ret
+
+def process_point_all(res):
+    ret = []
+    for sp in res['data']['spaces']['edges']:
+
+        # if sp['node']['id'] == space_id:
+
+        # bId = True
+        for p in sp['node']['points']['edges']:
+            space = {}
+            space['space_id'] = sp['node']['id']
+            space['id'] = p['node']['id']
+            space['name'] = p['node']['name']
+            space['metadata'] = p['node']['metadata']
+            ret.append(space)
+
     return ret
 
 def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,type=None,timestamp=None):
@@ -410,4 +435,3 @@ def signal_list_pnt(target, ten_id, ten_k, point_id = None):
 
     res = manage_response(res)
     return res
-

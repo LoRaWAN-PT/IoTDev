@@ -18,6 +18,7 @@ def get_all_requests(url):
     #path = f"{url}/request/latest"
     resp = rq.get(path)
     #print(f"resp:\n{resp},resp.text:\n{resp.text}")
+    d_out=[]
     """
     resp_json = resp.json()
     print(f"resp_json:\n{resp_json}")
@@ -51,50 +52,16 @@ def get_all_requests(url):
             resp_tot.append(resp_json)
         else:
             break
-
+    for r in resp_tot:
+        #print(f"r['data']:\n{r['data']}")
+        #for rd in r['data']:
+         #   d_out.append(rd)
+        d_out.extend(r['data'])
+    resp_tot = d_out
     #print(f"resp_tot:\n{resp_tot}")
-    data = proc_resp_json(resp_tot)
-    return data
-
-def proc_resp_json(resp_tot):
-    data = []
-    data_out = []
-    for irt in resp_tot:
-        for idata in irt['data']:
-            data_item = {}
-            data_item['uuid'] = idata['uuid']
-            if 'content' in idata:
-                data_item['content'] = idata['content']
-            data.append(data_item)
-
-    for idata in range(len(data)):
-        data_item = {}
-        if not data[idata]['content'] or len(data[idata]['content']) == 0:
-            #print(f"idata:\n{idata}")
-            continue
-
-        data_0JSON = json.loads(data[idata]['content'])
-        #print(f"data_0JSON:\n{data_0JSON}")
-
-        if 'DevEUI_uplink' in data_0JSON:
-            data_item['uuid'] = data[idata]['uuid']
-            # data_item = json.loads(idata['content'])
-            # print(f"idata['content']:\n{idata['content']}")
-            #data_0JSON = json.loads(idata['content'])
-
-            data_item['time'] = data_0JSON['DevEUI_uplink']['Time']
-            data_item['DevEUI'] = data_0JSON['DevEUI_uplink']['DevEUI']
-            data_item['payload'] = data_0JSON['DevEUI_uplink']['payload_hex']
-            data_item['time'] = data_0JSON['DevEUI_uplink']['Time']
-            if 'DriverCfg' in data_0JSON['DevEUI_uplink']:
-                data_item['measurement'] = data_0JSON['DevEUI_uplink']['DriverCfg']['mod']['mId']
-            #data[idata] = data_item
-            #print(f"data[{idata}]:\n{data[idata]}")
-            #print(f"data_item:\n{data_item}")
-            data_out.append(data_item)
-
-    return data_out
+    #data = proc_resp_json(resp_tot)
     #return data
+    return resp_tot
 
 def clean(token, all=None, uuids=None):
     if (not all and not uuids) or (all and uuids):
