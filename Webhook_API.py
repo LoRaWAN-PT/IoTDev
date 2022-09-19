@@ -19,12 +19,6 @@ def get_all_requests(url):
     resp = rq.get(path)
     #print(f"resp:\n{resp},resp.text:\n{resp.text}")
     d_out=[]
-    """
-    resp_json = resp.json()
-    print(f"resp_json:\n{resp_json}")
-    print(f"resp_json['total']:\n{resp_json['total']}")
-    print(f"resp_json['to']:\n{resp_json['to']}")
-    """
     resp_tot = []
     try:
         resp_json = resp.json()
@@ -68,15 +62,19 @@ def clean(token, all=None, uuids=None):
         return None
 
     if all:
-        return rq.delete(f"https://webhook.site/token{token}/request")
-        #resp = rq.delete(f"https://webhook.site/token{token}/request")
+        print(f"Clean all!")
+        return rq.delete(f"https://webhook.site/token/{token}/request")
+        #resp = rq.delete(f"https://webhook.site/token/{token}/request")
         #return resp
 
     if type(uuids) != list:
         return None
-
+    print(f"Clean uuids only:")
     for iu in uuids:
-        rq.delete(f"https://webhook.site/token{token}/request/{iu}")
-        #resp = rq.delete(f"https://webhook.site/token{token}/request/{iu}")
+        print(f"uuid to remove:{iu}")
+        rq.delete(f"https://webhook.site/token/{token}/request/{iu}")
+        #resp = rq.delete(f"https://webhook.site/token/{token}/request/{iu}")
+        #print(f"resp:{resp}")
         #return resp
+    print(f"clean finished")
     return

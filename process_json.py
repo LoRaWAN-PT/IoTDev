@@ -42,6 +42,8 @@ def map_point_device(points = None):
 
     map = {}
     for pnt in points:
-        map[pnt['metadata']['DevEUI']] = pnt['id']
+        if 'metadata' in pnt:
+            if 'DevEUI' in pnt['metadata']:
+                map[pnt['metadata']['DevEUI']] = pnt['id']
 
     return map

@@ -1,6 +1,8 @@
 import requests
 import json
 
+jsn = json
+
 units = { "Temperature": ["CELSIUS_DEGREES","FAHRENHEIT_DEGREES","KELVINS"],
           "Sound": ["DECIBELS","BEATS_PER_MINUTE"],
           "Position":["LATITUDE_DEGREES","LONGITUDE_DEGREES"],
@@ -123,9 +125,6 @@ def point_create(target, ten_id, ten_k, name=None, space_id=None):
         return res['data']['point']['create']['id']
 
 def point_list(target, ten_id, ten_k, space_id=None):
-    #if not space_id:
-    #        print(f"Specify space id.")
-        #return None
     if not target:
         print(f"Target not specified.")
         return None
@@ -153,8 +152,6 @@ def point_list(target, ten_id, ten_k, space_id=None):
 
     if not res:
         return None
-    #else:
-     #   return res
 
     if space_id:
         return process_point_id(res, space_id)
@@ -177,9 +174,7 @@ def process_point_id(res, space_id):
 def process_point_all(res):
     ret = []
     for sp in res['data']['spaces']['edges']:
-
         # if sp['node']['id'] == space_id:
-
         # bId = True
         for p in sp['node']['points']['edges']:
             space = {}
@@ -191,7 +186,7 @@ def process_point_all(res):
 
     return ret
 
-def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,type=None,timestamp=None):
+def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,type=None,timestamp=None, metadata=None):
     if not point_id:
         print(f"Point id not specified")
         return None
@@ -201,7 +196,6 @@ def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,ty
     if not ten_id or not ten_k:
         print(f"Target not specified.")
         return None
-
     headers = {'x-tenant-id': ten_id, 'x-tenant-key':ten_k}
     query =f"""mutation CREATE_SIGNAL{{signal{{create(input:{{
             pointId: \"{point_id}\"
@@ -211,6 +205,7 @@ def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,ty
                     value: \"{value}\"
                     type: \"{type}\"
                     timestamp: \"{timestamp}\"
+                    metadata: {{Signal_strength:\"{metadata['Signal strength']}\",SNR:\"{metadata['SNR']}\"}}
                 }}]}}) {{
                     id
                     timestamp
@@ -218,6 +213,7 @@ def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,ty
                     pointId
                     unit
                     type
+                    metadata
                     data
                     {{
                         numericValue
@@ -305,6 +301,7 @@ def signal_list_after_timestamp(target, ten_id, ten_k, timestamp_start = None):
                 pointId
                 unit
                 type
+                metadata
                 data{{
                     numericValue
                     rawValue
@@ -346,6 +343,7 @@ def signal_list_betw_timestamp(target, ten_id, ten_k, timestamp_start = None, ti
                 pointId
                 unit
                 type
+                metadata
                 data{{
                     numericValue
                     rawValue
@@ -383,6 +381,7 @@ def signal_list_before_timestamp(target, ten_id, ten_k, timestamp_end = None):
                 pointId
                 unit
                 type
+                metadata
                 data{{
                     numericValue
                     rawValue
@@ -421,6 +420,7 @@ def signal_list_pnt(target, ten_id, ten_k, point_id = None):
                 pointId
                 unit
                 type
+                metadata
                 data{{
                     numericValue
                     rawValue
