@@ -7,8 +7,15 @@ from Graph_API import *
 from Webhook_API import *
 from process_json import *
 
+temp_imageUrl = "https://www.adeunis.com/wp-content/uploads/2020/07/temperature-capteur-iot-lorawan-sigfox-lpwan-adeunis-temp.jpg"
+comfort_imageUrl = "https://www.adeunis.com/wp-content/uploads/2018/10/TEMPERATURE-HUMIDITE3.jpg"
+
 def register_signals(target, ten_id, ten_k, data, points_map):
     for d in data:
+
+        if not 'DevEUI_uplink' in d['content']:
+            continue
+
         dd = d['content']['DevEUI_uplink']
         if not dd['DevEUI'] in points_map:
             print(f"No device DevEUI:{dd['DevEUI']}")
@@ -20,7 +27,10 @@ def register_signals(target, ten_id, ten_k, data, points_map):
             arguments['unit'] = "CELSIUS_DEGREES"
             arguments['value'] = f"{float(int(dd['payload_hex'][4:8],16))/10}"
             arguments['type'] = "Air temperature"
-            arguments['metadata'] = {"Signal strength":f"{dd['LrrRSSI']}", "SNR": f"{dd['LrrSNR']}"}
+            arguments['metadata'] = {}
+            arguments['metadata']['Signal strength'] = f"{dd['LrrRSSI']}"
+            arguments['metadata']['SNR'] = f"{dd['LrrSNR']}"
+            arguments['metadata']['imageUrl'] = temp_imageUrl
             arguments['point_id'] = points_map[dd['DevEUI']]
             arguments['timestamp'] = dd['Time']
             args.append(arguments)
@@ -29,8 +39,10 @@ def register_signals(target, ten_id, ten_k, data, points_map):
             arguments['unit'] = "CELSIUS_DEGREES"
             arguments['value'] = f"{float(int(dd['payload_hex'][4:8], 16)) / 10}"
             arguments['type'] = "Air temperature"
-            arguments['metadata'] = {"Signal strength": f"{dd['LrrRSSI']}", "SNR": f"{dd['LrrSNR']}"}
-            # arguments['metadata'] = json.dumps({"Signal strength":f"{dd['LrrRSSI']}", "SNR": f"{dd['LrrSNR']}"})
+            arguments['metadata'] = {}
+            arguments['metadata']['Signal strength'] = f"{dd['LrrRSSI']}"
+            arguments['metadata']['SNR'] = f"{dd['LrrSNR']}"
+            arguments['metadata']['imageUrl'] = comfort_imageUrl
             arguments['point_id'] = points_map[dd['DevEUI']]
             arguments['timestamp'] = dd['Time']
             args.append(arguments)
@@ -38,7 +50,10 @@ def register_signals(target, ten_id, ten_k, data, points_map):
             arguments['unit'] = "PERCENTS"
             arguments['value'] = f"{int(dd['payload_hex'][8:10], 16)}"
             arguments['type'] = "Humidity"
-            arguments['metadata'] = {"Signal strength": f"{dd['LrrRSSI']}", "SNR": f"{dd['LrrSNR']}"}
+            arguments['metadata'] = {}
+            arguments['metadata']['Signal strength'] = f"{dd['LrrRSSI']}"
+            arguments['metadata']['SNR'] = f"{dd['LrrSNR']}"
+            arguments['metadata']['imageUrl'] = comfort_imageUrl
             arguments['point_id'] = points_map[dd['DevEUI']]
             arguments['timestamp'] = dd['Time']
             args.append(arguments)

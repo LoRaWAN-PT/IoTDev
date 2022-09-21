@@ -205,7 +205,7 @@ def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,ty
                     value: \"{value}\"
                     type: \"{type}\"
                     timestamp: \"{timestamp}\"
-                    metadata: {{Signal_strength:\"{metadata['Signal strength']}\",SNR:\"{metadata['SNR']}\"}}
+                    metadata: {{Signal_strength:\"{metadata['Signal strength']}\",SNR:\"{metadata['SNR']}\",imageUrl:\"{metadata['imageUrl']}\"}}
                 }}]}}) {{
                     id
                     timestamp
