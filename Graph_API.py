@@ -234,7 +234,7 @@ def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,ty
             ret.append({'id':s['id'], "numericValue": s['data']['numericValue'], "rawValue": s['data']['rawValue']})
 
     return ret
-
+#TODO: Retrieve all signals using paginate {after: <signalid>}
 def signal_list(target, ten_id, ten_k, **kwargs):
     if len(kwargs) > 1:
         print(f"Only one parameter can be used at the moment.")
@@ -248,7 +248,7 @@ def signal_list(target, ten_id, ten_k, **kwargs):
 
     res = None
     if 'point_id' in kwargs:
-        res = signal_list_pnt(target, ten_id, ten_k, point_id=kwargs['point_id'])
+        res = signal_list_pnt_first_100(target, ten_id, ten_k, point_id=kwargs['point_id'])
     elif 'timestamp_start' in kwargs:
         if 'timestamp_end' in kwargs:
             res = signal_list_betw_timestamp(target, ten_id, ten_k, timestamp_start=kwargs['timestamp_start'], timestamp_end=kwargs['timestamp_end'])
@@ -397,7 +397,7 @@ def signal_list_before_timestamp(target, ten_id, ten_k, timestamp_end = None):
     res = manage_response(res)
     return res
 
-def signal_list_pnt(target, ten_id, ten_k, point_id = None):
+def signal_list_pnt_first_100(target, ten_id, ten_k, point_id = None):
     if not point_id:
         print(f"Specify point id.")
         return None
@@ -411,7 +411,10 @@ def signal_list_pnt(target, ten_id, ten_k, point_id = None):
     headers = {'x-tenant-id': ten_id, 'x-tenant-key':ten_k}
     query = f"""query GET_MY_SIGNAL{{
     signals(
-        where: {{pointId: {{_EQ: "{point_id}"}}}}){{
+        where: {{pointId: {{_EQ: "{point_id}"}}}}
+        paginate: {{first:100}}
+        
+        ){{
         edges{{
             node{{
                 id
