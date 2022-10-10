@@ -1,4 +1,5 @@
 import sys
+import os
 import time
 import datetime as dt
 import configparser
@@ -63,10 +64,11 @@ def register_signals(target, ten_id, ten_k, data, points_map):
         print(f"args:{args}")
         for a in args:
             signal_create(target, ten_id, ten_k, **a)
+
 #conf_path = "config_dev.ini"
-conf_path = "config.ini"
+#conf_path = "config.ini"
+conf_path = "/home/pi/CodePython/IoTDev/config.ini"
 confs = configparser.ConfigParser()
-#confs.read(conf_path)
 confs.read(conf_path)
 target = confs['D4API']['target']
 ten_id = confs['D4API']['ten_id']
@@ -98,7 +100,7 @@ for s in sps:
 s_reged = None
 if pnt_id :
     for i in range(4):
-        s_reged = signal_creat  e(target, ten_id, ten_k, point_id=pnt_id, unit="CELSIUS_DEGREES", value=f"{float(int(np.random.random()*35*100))/100}", type="TEMP", timestamp=dt.datetime.now(dt.timezone.utc).isoformat())
+        s_reged = signal_create(target, ten_id, ten_k, point_id=pnt_id, unit="CELSIUS_DEGREES", value=f"{float(int(np.random.random()*35*100))/100}", type="TEMP", timestamp=dt.datetime.now(dt.timezone.utc).isoformat())
         print(f"s_reged:\n{s_reged}")
         time.sleep(5)
 else:
@@ -135,24 +137,20 @@ map = map_point_device(pnts)
 #Register all data from webhook in D4
 print(f"map:{map}")
 register_signals(target,ten_id,ten_k,data_graph,map)
-
 """
 #Request all signals from one point 
 pnt_id = "63230e49eac7b9be6beb2983"
-
+""""""
 #List all signals registered for that point.
 signals = signal_list(target, ten_id, ten_k, point_id=pnt_id)
-print(f"(length:{len(signals)}")
 for signal in signals:
-    print(f"signal :\n{signal}")
+    print(f"signal:\n{signal}")
 """
-#Remove the saved data from D4
+#Remove the saved data from Webhook
 uuids = []
 for d in data:
     uuids.append(d['uuid'])
 clean(token, uuids=uuids)
-
 """
 clean(token, uuids=["ca015fa5-a494-4a74-968f-ac55b7e86e4a"])
 """
-
