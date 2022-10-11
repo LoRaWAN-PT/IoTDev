@@ -1,5 +1,5 @@
-import sys
-import os
+import sys, os
+import struct
 import time
 import datetime as dt
 import configparser
@@ -26,7 +26,8 @@ def register_signals(target, ten_id, ten_k, data, points_map):
         if dd['DriverCfg']['mod']['mId'] == "temp":
             arguments = {}
             arguments['unit'] = "CELSIUS_DEGREES"
-            arguments['value'] = f"{float(int(dd['payload_hex'][4:8],16))/10}"
+
+            arguments['value'] = f"{float(struct.unpack('>h',bytes.fromhex(dd['payload_hex'][4:8]))[0])/10}"
             arguments['type'] = "Air temperature"
             arguments['metadata'] = {}
             arguments['metadata']['Signal strength'] = f"{dd['LrrRSSI']}"
@@ -38,7 +39,7 @@ def register_signals(target, ten_id, ten_k, data, points_map):
         elif dd['DriverCfg']['mod']['mId'] == "comfort":
             arguments = {}
             arguments['unit'] = "CELSIUS_DEGREES"
-            arguments['value'] = f"{float(int(dd['payload_hex'][4:8], 16)) / 10}"
+            arguments['value'] = f"{float(struct.unpack('>h',bytes.fromhex(dd['payload_hex'][4:8]))[0])/10}"
             arguments['type'] = "Air temperature"
             arguments['metadata'] = {}
             arguments['metadata']['Signal strength'] = f"{dd['LrrRSSI']}"
@@ -49,7 +50,7 @@ def register_signals(target, ten_id, ten_k, data, points_map):
             args.append(arguments)
             arguments = {}
             arguments['unit'] = "PERCENTS"
-            arguments['value'] = f"{int(dd['payload_hex'][8:10], 16)}"
+            arguments['value'] = f"{int.from_bytes(bytes.fromhex(dd['payload_hex'][8:10]), byteorder=sys.byteorder)}"
             arguments['type'] = "Humidity"
             arguments['metadata'] = {}
             arguments['metadata']['Signal strength'] = f"{dd['LrrRSSI']}"
