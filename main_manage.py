@@ -58,7 +58,7 @@ def create_instr(data_in, map):
     print(f"line: {sys._getframe().f_lineno}: inst.sensors quantity:{len(instr.sensors)}")
     instr.def_value()
     for isen in instr.sensors:
-        print(f"line: {sys._getframe().f_lineno}: isen.type:{isen.type},isen.value:{isen.value},isen.unit:{isen.unit}")
+        print(f"line: {sys._getframe().f_lineno}: isen.type:{isen.type},isen.value:{isen.value},isen.unit:{isen.unit},isen.metadata:{isen.metadata}")
 
     return instr
 
@@ -78,6 +78,10 @@ def form_signal_from_instruments(instrs):
             arguments['metadata']['imageUrl'] = instr.metadata['imageUrl']
             if 'BatteryLevel' in instr.metadata:
                 arguments['metadata']['BatteryLevel'] = instr.metadata['BatteryLevel']
+
+            if 'Channel' in isen.metadata:
+                arguments['metadata']['Channel'] = isen.metadata['Channel']
+
             arguments['unit'] = isen.unit
             arguments['value'] = isen.value
             arguments['type'] = isen.type
@@ -105,8 +109,10 @@ def proc_all_data(data_in,map):
     else:
         print(f"NO sgn_data")
 
+
     for sd in sgn_data:
         signal_create(target, ten_id, ten_k, **sd)
+
 
 #conf_path = "config_dev.ini"
 conf_path = "config.ini"

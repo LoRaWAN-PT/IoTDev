@@ -84,6 +84,7 @@ class Instrument_temp(Instrument):
         chn = 0
         while chn < self.chnls:
             self.sensors.append(Sensor_temp())
+            self.sensors[chn].metadata['Channel'] = chn+1
             chn+=1
 
     def def_value(self):
