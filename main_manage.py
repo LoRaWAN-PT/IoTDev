@@ -1,74 +1,116 @@
-import sys, os
-import struct
-import time
-import datetime as dt
+#import json
 import configparser
-import numpy as np
 from Graph_API import *
 from Webhook_API import *
+from ThingPark import *
 from process_json import *
+from test_response_webhook import *
 
-temp_imageUrl = "https://www.adeunis.com/wp-content/uploads/2020/07/temperature-capteur-iot-lorawan-sigfox-lpwan-adeunis-temp.jpg"
-comfort_imageUrl = "https://www.adeunis.com/wp-content/uploads/2018/10/TEMPERATURE-HUMIDITE3.jpg"
+def create_instr(data_in, map):
+    print(f"line: {sys._getframe().f_lineno}: create_instr: BEGIN")
+    instr = None
+    if not ('DevEUI_uplink' in data_in):
+        print(f"line: {sys._getframe().f_lineno}: create_instr: NO DevEUI_uplink")
+        return None
 
-def register_signals(target, ten_id, ten_k, data, points_map):
-    for d in data:
+    dd = data_in['DevEUI_uplink']
 
-        if not 'DevEUI_uplink' in d['content']:
-            continue
+    if not ('DevEUI' in dd):
+        print(f"line: {sys._getframe().f_lineno}: create_instr: NO DevEUI")
+        return None
 
-        dd = d['content']['DevEUI_uplink']
-        if not dd['DevEUI'] in points_map:
-            print(f"No device DevEUI:{dd['DevEUI']}")
-            continue
-        args = []
+    if not (dd['DevEUI'] in map):
+        print(f"line: {sys._getframe().f_lineno}: create_instr: DevEUI NOT in map")
+        return None
 
-        if dd['DriverCfg']['mod']['mId'] == "temp":
+    if not ('DriverCfg' in dd):
+        print(f"line: {sys._getframe().f_lineno}: create_instr: NO DriverCfg")
+        return None
+
+    if not ('mod' in dd['DriverCfg']):
+        print(f"line: {sys._getframe().f_lineno}: create_instr: NO mod")
+        return None
+
+    if not ('mId' in dd['DriverCfg']['mod']):
+        print(f"line: {sys._getframe().f_lineno}: create_instr: NO mId")
+        return None
+
+    if dd['DriverCfg']['mod']['mId'] == "temp":
+        instr = Instrument_temp(data_in)
+    elif dd['DriverCfg']['mod']['mId'] == "comfort":
+        instr = Instrument_comfort(data_in)
+
+    if not instr:
+        print(f"line: {sys._getframe().f_lineno}: create_instr: NOT instr")
+        return None
+
+    instr.def_type()
+    if instr.msg_type != "Periodic data frame":
+        print(f"line: {sys._getframe().f_lineno}: create_instr: NOT Periodic data frame")
+        return None
+
+    instr.fill_meta()
+    instr.metadata['point_id'] = map[instr.metadata['DevEUI']]
+    print(f"line: {sys._getframe().f_lineno}: inst.metadata:\n{instr.metadata}")
+
+    print(f"instr.name:{instr.name}")
+    instr.add_sensor()
+    print(f"line: {sys._getframe().f_lineno}: inst.sensors quantity:{len(instr.sensors)}")
+    instr.def_value()
+    for isen in instr.sensors:
+        print(f"line: {sys._getframe().f_lineno}: isen.type:{isen.type},isen.value:{isen.value},isen.unit:{isen.unit}")
+
+    return instr
+
+def form_signal_from_instruments(instrs):
+    args = []
+
+    for instr in instrs:
+        for isen in instr.sensors:
+            print(
+                f"line: {sys._getframe().f_lineno}: isen.type:{isen.type},isen.value:{isen.value},isen.unit:{isen.unit}")
             arguments = {}
-            arguments['unit'] = "CELSIUS_DEGREES"
+            arguments['point_id'] = instr.metadata['point_id']
+            arguments['timestamp'] = instr.metadata['timestamp']
+            arguments['metadata'] = {}
+            arguments['metadata']['Signal strength'] = instr.metadata['Signal strength']
+            arguments['metadata']['SNR'] = instr.metadata['SNR']
+            arguments['metadata']['imageUrl'] = instr.metadata['imageUrl']
+            if 'BatteryLevel' in instr.metadata:
+                arguments['metadata']['BatteryLevel'] = instr.metadata['BatteryLevel']
+            arguments['unit'] = isen.unit
+            arguments['value'] = isen.value
+            arguments['type'] = isen.type
+            print(
+                f"line: {sys._getframe().f_lineno}: arguments:{arguments}")
+            args.append(arguments)
 
-            arguments['value'] = f"{float(struct.unpack('>h',bytes.fromhex(dd['payload_hex'][4:8]))[0])/10}"
-            arguments['type'] = "Air temperature"
-            arguments['metadata'] = {}
-            arguments['metadata']['Signal strength'] = f"{dd['LrrRSSI']}"
-            arguments['metadata']['SNR'] = f"{dd['LrrSNR']}"
-            arguments['metadata']['imageUrl'] = temp_imageUrl
-            arguments['point_id'] = points_map[dd['DevEUI']]
-            arguments['timestamp'] = dd['Time']
-            args.append(arguments)
-        elif dd['DriverCfg']['mod']['mId'] == "comfort":
-            arguments = {}
-            arguments['unit'] = "CELSIUS_DEGREES"
-            arguments['value'] = f"{float(struct.unpack('>h',bytes.fromhex(dd['payload_hex'][4:8]))[0])/10}"
-            arguments['type'] = "Air temperature"
-            arguments['metadata'] = {}
-            arguments['metadata']['Signal strength'] = f"{dd['LrrRSSI']}"
-            arguments['metadata']['SNR'] = f"{dd['LrrSNR']}"
-            arguments['metadata']['imageUrl'] = comfort_imageUrl
-            arguments['point_id'] = points_map[dd['DevEUI']]
-            arguments['timestamp'] = dd['Time']
-            args.append(arguments)
-            arguments = {}
-            arguments['unit'] = "PERCENTS"
-            arguments['value'] = f"{int.from_bytes(bytes.fromhex(dd['payload_hex'][8:10]), byteorder=sys.byteorder)}"
-            arguments['type'] = "Humidity"
-            arguments['metadata'] = {}
-            arguments['metadata']['Signal strength'] = f"{dd['LrrRSSI']}"
-            arguments['metadata']['SNR'] = f"{dd['LrrSNR']}"
-            arguments['metadata']['imageUrl'] = comfort_imageUrl
-            arguments['point_id'] = points_map[dd['DevEUI']]
-            arguments['timestamp'] = dd['Time']
-            args.append(arguments)
-        else:
-            continue
+    return args
 
-        print(f"args:{args}")
-        for a in args:
-            signal_create(target, ten_id, ten_k, **a)
+def proc_all_data(data_in,map):
+    instrs = []
+    cnt = 0
+    for d in data_in:
+        if cnt>10:
+            break
+        iinstr = create_instr(d, map)
+        if iinstr:
+            instrs.append(iinstr)
+        cnt+=1
+    print(f"line: {sys._getframe().f_lineno}: number of instruments:{len(instrs)}")
+
+    sgn_data = form_signal_from_instruments(instrs)
+    if sgn_data:
+        print(f"sgn_data:\n{sgn_data}")
+    else:
+        print(f"NO sgn_data")
+
+    for sd in sgn_data:
+        signal_create(target, ten_id, ten_k, **sd)
 
 #conf_path = "config_dev.ini"
-#conf_path = "config.ini"
-conf_path = "/home/pi/CodePython/IoTDev/config.ini"
+conf_path = "config.ini"
+#conf_path = "/home/pi/CodePython/IoTDev/config.ini"
 confs = configparser.ConfigParser()
 confs.read(conf_path)
 target = confs['D4API']['target']
@@ -77,81 +119,30 @@ ten_k = confs['D4API']['ten_k_rw']
 url = confs['Webhook']['URL']
 token = confs['Webhook']['token']
 
-"""
-#List all spaces.
-sps = space_list(target, ten_id, ten_k)
-print(f"spaces:\n{sps}")
-"""
-"""
-#Among the spaces find one which has name "Campus_Porsgrunn".
-#In that space find a point named "TEMP_000" and save its id.
-pnt_id = None
-for s in sps:
-    print(f"space:\n{s}")
-    if s['name'] == "Campus_Porsgrunn":
-        pnts = point_list(target, ten_id, ten_k, space_id=s['id'])
-        for p in pnts:
-            print(f"point:\n{p}")
-            if p['name']=="USN1":
-                print(f"Found USN1, save its id.")
-                pnt_id = p['id']
-"""
-"""
-#Insert signals with random values for temperature into point "TEMP_000" using its id.
-s_reged = None
-if pnt_id :
-    for i in range(4):
-        s_reged = signal_create(target, ten_id, ten_k, point_id=pnt_id, unit="CELSIUS_DEGREES", value=f"{float(int(np.random.random()*35*100))/100}", type="TEMP", timestamp=dt.datetime.now(dt.timezone.utc).isoformat())
-        print(f"s_reged:\n{s_reged}")
-        time.sleep(5)
-else:
-    print(f"Could not find the point!.")
-"""
-"""
-pnt_id = "63230e49eac7b9be6beb2983"
-
-#List all signals registered for that point.
-signals = signal_list(target, ten_id, ten_k, point_id=pnt_id)
-for signal in signals:
-    print(f"signal:\n{signal}")
-"""
-
 #Request data from webhook
 data = get_requests(url, token)
-data_graph = proc_resp_json(get_requests(url, token))
-if not data_graph:
+#data_proc = proc_resp_json(get_requests(url, token))
+data_proc = proc_resp_json(data)
+if not data_proc:
     print(f"No data!")
     sys.exit()
-
-#print(f"data:{len(data)}")
-for d in data_graph:
-    print(f"d:{d}")
 
 #Get all points from tenant
 pnts = point_list(target,ten_id,ten_k)
 #print(f"pnts:{pnts}")
-for p in pnts:
-    print(f"p:{p}")
+#for p in pnts:
+#    print(f"p:{p}")
 
-#Map devices to points
+#Map devices to points, create a dictionary
 map = map_point_device(pnts)
 #Register all data from webhook in D4
 print(f"map:{map}")
-register_signals(target,ten_id,ten_k,data_graph,map)
-"""
-#Request all signals from one point 
-pnt_id = "63230e49eac7b9be6beb2983"
-""""""
-#List all signals registered for that point.
-signals = signal_list(target, ten_id, ten_k, point_id=pnt_id)
-for signal in signals:
-    print(f"signal:\n{signal}")
-"""
+
+#print(f"data:{data_proc}")
+proc_all_data(data_proc, map)
+
 #Remove the saved data from Webhook
 uuids = []
 for d in data:
     uuids.append(d['uuid'])
 clean(token, uuids=uuids)
-"""
-clean(token, uuids=["ca015fa5-a494-4a74-968f-ac55b7e86e4a"])
-"""
