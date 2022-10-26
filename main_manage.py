@@ -109,7 +109,6 @@ def proc_all_data(data_in,map):
     else:
         print(f"NO sgn_data")
 
-
     for sd in sgn_data:
         signal_create(target, ten_id, ten_k, **sd)
 
