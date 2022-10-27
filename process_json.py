@@ -7,6 +7,8 @@ def proc_resp_json(resp_tot):
             if 'content' in irt:
                 if irt['content']:
                     data.append(json.loads(irt['content']))
+    else:
+        print(f"proc_resp_json: not resp_tot: {resp_tot}")
     return data
 
 def map_point_device(points = None):
