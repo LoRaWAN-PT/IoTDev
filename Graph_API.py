@@ -204,7 +204,7 @@ def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,ty
             meta.append(f"{k.replace(' ', '_')}:\"{metadata[k]}\"")
     meta = ','.join(meta)
 
-    #print(f"meta:{meta}")
+    print(f"meta:{meta}")
     #metadata: {{{meta}}}
     #metadata: {{Signal_strength:\"{metadata['Signal strength']}\",SNR:\"{metadata['SNR']}\",imageUrl:\"{metadata['imageUrl']}\"}}
     headers = {'x-tenant-id': ten_id, 'x-tenant-key':ten_k}

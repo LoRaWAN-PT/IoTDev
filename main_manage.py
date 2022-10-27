@@ -7,7 +7,6 @@ from process_json import *
 #from test_response_webhook import *
 
 def create_instr(data_in, map):
-    print(f"line: {sys._getframe().f_lineno}: create_instr: BEGIN")
     instr = None
     if not ('DevEUI_uplink' in data_in):
         print(f"line: {sys._getframe().f_lineno}: create_instr: NO DevEUI_uplink")
@@ -51,14 +50,8 @@ def create_instr(data_in, map):
 
     instr.fill_meta()
     instr.metadata['point_id'] = map[instr.metadata['DevEUI']]
-    print(f"line: {sys._getframe().f_lineno}: inst.metadata:\n{instr.metadata}")
-
-    print(f"instr.name:{instr.name}")
     instr.add_sensor()
-    print(f"line: {sys._getframe().f_lineno}: inst.sensors quantity:{len(instr.sensors)}")
     instr.def_value()
-    for isen in instr.sensors:
-        print(f"line: {sys._getframe().f_lineno}: isen.type:{isen.type},isen.value:{isen.value},isen.unit:{isen.unit},isen.metadata:{isen.metadata}")
 
     return instr
 
@@ -67,8 +60,6 @@ def form_signal_from_instruments(instrs):
 
     for instr in instrs:
         for isen in instr.sensors:
-            print(
-                f"line: {sys._getframe().f_lineno}: isen.type:{isen.type},isen.value:{isen.value},isen.unit:{isen.unit}")
             arguments = {}
             arguments['point_id'] = instr.metadata['point_id']
             arguments['timestamp'] = instr.metadata['timestamp']
@@ -85,8 +76,6 @@ def form_signal_from_instruments(instrs):
             arguments['unit'] = isen.unit
             arguments['value'] = isen.value
             arguments['type'] = isen.type
-            print(
-                f"line: {sys._getframe().f_lineno}: arguments:{arguments}")
             args.append(arguments)
 
     return args
@@ -101,7 +90,6 @@ def proc_all_data(data_in,map):
         if iinstr:
             instrs.append(iinstr)
         cnt+=1
-    print(f"line: {sys._getframe().f_lineno}: number of instruments:{len(instrs)}")
 
     sgn_data = form_signal_from_instruments(instrs)
     if sgn_data:
