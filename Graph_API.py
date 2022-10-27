@@ -196,6 +196,17 @@ def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,ty
     if not ten_id or not ten_k:
         print(f"Target not specified.")
         return None
+
+    meta = []
+
+    if metadata:
+        for k in metadata:
+            meta.append(f"{k.replace(' ', '_')}:\"{metadata[k]}\"")
+    meta = ','.join(meta)
+
+    #print(f"meta:{meta}")
+    #metadata: {{{meta}}}
+    #metadata: {{Signal_strength:\"{metadata['Signal strength']}\",SNR:\"{metadata['SNR']}\",imageUrl:\"{metadata['imageUrl']}\"}}
     headers = {'x-tenant-id': ten_id, 'x-tenant-key':ten_k}
     query =f"""mutation CREATE_SIGNAL{{signal{{create(input:{{
             pointId: \"{point_id}\"
@@ -205,7 +216,7 @@ def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,ty
                     value: \"{value}\"
                     type: \"{type}\"
                     timestamp: \"{timestamp}\"
-                    metadata: {{Signal_strength:\"{metadata['Signal strength']}\",SNR:\"{metadata['SNR']}\",imageUrl:\"{metadata['imageUrl']}\"}}
+                    metadata: {{ {meta} }}
                 }}]}}) {{
                     id
                     timestamp
@@ -218,6 +229,7 @@ def signal_create(target, ten_id, ten_k, point_id=None, unit=None, value=None,ty
                     {{
                         numericValue
                         rawValue }}}}}}}}"""
+
     json = {"query": query, "variables": None}
     res = None
     try:

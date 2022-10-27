@@ -39,7 +39,7 @@ class Instrument():
         if 'BatteryTime' in self.message:
             self.metadata['BatteryTime'] = (self.message['BatteryTime'])
         if 'Frequency' in self.message:
-            self.metadata['freq'] = (self.message['Frequency'])
+            self.metadata['Frequency'] = (self.message['Frequency'])
 
     def bat_level(self, value):
         return f"{(value - 1)/(253)*100: .2f}"
