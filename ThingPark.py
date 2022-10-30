@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, struct
 
 imageUrl_temp = "https://www.adeunis.com/wp-content/uploads/2020/07/temperature-capteur-iot-lorawan-sigfox-lpwan-adeunis-temp.jpg"
 imageUrl_comfort = "https://www.adeunis.com/wp-content/uploads/2018/10/TEMPERATURE-HUMIDITE3.jpg"
