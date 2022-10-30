@@ -1,10 +1,8 @@
-#import json
 import configparser
 from Graph_API import *
 from Webhook_API import *
 from ThingPark import *
 from process_json import *
-#from test_response_webhook import *
 
 def create_instr(data_in, map):
     instr = None
@@ -100,7 +98,6 @@ def proc_all_data(data_in,map):
     for sd in sgn_data:
         signal_create(target, ten_id, ten_k, **sd)
 
-
 #conf_path = "config_dev.ini"
 conf_path = "config.ini"
 #conf_path = "/home/pi/CodePython/IoTDev/config.ini"
@@ -114,7 +111,6 @@ token = confs['Webhook']['token']
 
 #Request data from webhook
 data = get_requests(url, token)
-#data_proc = proc_resp_json(get_requests(url, token))
 data_proc = proc_resp_json(data)
 if not data_proc:
     print(f"No data!")
@@ -122,16 +118,12 @@ if not data_proc:
 
 #Get all points from tenant
 pnts = point_list(target,ten_id,ten_k)
-#print(f"pnts:{pnts}")
-#for p in pnts:
-#    print(f"p:{p}")
 
 #Map devices to points, create a dictionary
 map = map_point_device(pnts)
 #Register all data from webhook in D4
 print(f"map:{map}")
 
-#print(f"data:{data_proc}")
 proc_all_data(data_proc, map)
 
 #Remove the saved data from Webhook
