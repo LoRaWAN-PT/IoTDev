@@ -4,6 +4,12 @@ from Webhook_API import *
 from ThingPark import *
 from process_json import *
 
+def value_QC_range(min, max, value):
+    if (value <= max) and (value >= min):
+        return "G"
+    else:
+        return "B"
+
 def create_instr(data_in, map):
     instr = None
     if not ('DevEUI_uplink' in data_in):
@@ -74,6 +80,13 @@ def form_signal_from_instruments(instrs):
             arguments['unit'] = isen.unit
             arguments['value'] = isen.value
             arguments['type'] = isen.type
+
+            if isen.type == "Air temperature":
+                arguments['metadata']['value_QC'] = value_QC_range(-50, 50, arguments['value'])
+
+            if isen.type == "Humidity":
+                arguments['metadata']['value_QC'] = value_QC_range(0, 100, arguments['value'])
+
             args.append(arguments)
 
     return args
