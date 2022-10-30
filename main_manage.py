@@ -93,14 +93,14 @@ def form_signal_from_instruments(instrs):
 
 def proc_all_data(data_in,map):
     instrs = []
-    cnt = 0
+    #cnt = 0
     for d in data_in:
-        if cnt>10:
-            break
+        #if cnt>10:
+        #    break
         iinstr = create_instr(d, map)
         if iinstr:
             instrs.append(iinstr)
-        cnt+=1
+        #cnt+=1
 
     sgn_data = form_signal_from_instruments(instrs)
     if sgn_data:
