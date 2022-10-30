@@ -66,7 +66,7 @@ class Instrument():
         pass
 
 class Instrument_temp(Instrument):
-    def __init__(self,message):
+    def __init__(self,message, *args, **kwargs):
         super().__init__(message)
         self.name = "temp"
         self.periodic_df = int("57", 16)
@@ -97,7 +97,7 @@ class Instrument_temp(Instrument):
             stp+=4
 
 class Instrument_comfort(Instrument):
-    def __init__(self, message):
+    def __init__(self, message, *args, **kwargs):
         super().__init__(message)
         self.name = "comfort"
         self.periodic_df = int("4c",16)
@@ -128,13 +128,13 @@ class Sensor():
         self.metadata = {}
 
 class Sensor_temp(Sensor):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__()
         self.unit = "CELSIUS_DEGREES"
         self.type = "Air temperature"
 
 class Sensor_rh(Sensor):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__()
         self.unit = "PERCENTS"
         self.type = "Humidity"
