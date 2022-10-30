@@ -92,7 +92,7 @@ class Instrument_temp(Instrument):
             return None
         stp = 0
         for s in self.sensors:
-            s.value = float(int(struct.unpack('h', bytes.fromhex(self.payload[4+stp:8+stp]))[0]))/10
+            s.value = float(int(struct.unpack('>h', bytes.fromhex(self.payload[4+stp:8+stp]))[0]))/10
             #s.value = float(int(self.payload[4+stp:8+stp],16))/10
             stp+=4
 
@@ -113,7 +113,7 @@ class Instrument_comfort(Instrument):
         stp = 0
         for isen in range(len(self.sensors)):
             if isen%2 == 0:
-                self.sensors[isen].value = float(int(struct.unpack('h', bytes.fromhex(self.payload[4 + stp:8 + stp]))[0])) / 10
+                self.sensors[isen].value = float(int(struct.unpack('>h', bytes.fromhex(self.payload[4 + stp:8 + stp]))[0])) / 10
                 #self.sensors[isen].value = float(int(self.payload[4+stp:8+stp],16))/10
                 stp+=4
             if isen%2 != 0:
