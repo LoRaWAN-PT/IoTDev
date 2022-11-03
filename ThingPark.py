@@ -2,6 +2,12 @@ import sys, os, struct
 
 imageUrl_temp = "https://www.adeunis.com/wp-content/uploads/2020/07/temperature-capteur-iot-lorawan-sigfox-lpwan-adeunis-temp.jpg"
 imageUrl_comfort = "https://www.adeunis.com/wp-content/uploads/2018/10/TEMPERATURE-HUMIDITE3.jpg"
+imageUrl_dry_contacts = "https://www.adeunis.com/wp-content/uploads/2017/08/SENSOR-Picto-DRY-CONTACT.png"
+
+class Logger():
+    def __init__(self):
+        pass
+
 
 class Instrument():
     def __init__(self, message):
@@ -56,9 +62,6 @@ class Instrument():
         if (bfh & self.periodic_df) == self.periodic_df:
             self.msg_type = "Periodic data frame"
 
-    def set_name(self, mId):
-        pass
-
     def def_value(self):
         pass
 
@@ -93,7 +96,6 @@ class Instrument_temp(Instrument):
         stp = 0
         for s in self.sensors:
             s.value = float(int(struct.unpack('>h', bytes.fromhex(self.payload[4+stp:8+stp]))[0]))/10
-            #s.value = float(int(self.payload[4+stp:8+stp],16))/10
             stp+=4
 
 class Instrument_comfort(Instrument):
@@ -113,12 +115,61 @@ class Instrument_comfort(Instrument):
         stp = 0
         for isen in range(len(self.sensors)):
             if isen%2 == 0:
-                self.sensors[isen].value = float(int(struct.unpack('>h', bytes.fromhex(self.payload[4 + stp:8 + stp]))[0])) / 10
+                self.sensors[isen].value = float(int(struct.unpack('>h', bytes.fromhex(self.payload[4+stp:8+stp]))[0])) / 10
                 #self.sensors[isen].value = float(int(self.payload[4+stp:8+stp],16))/10
                 stp+=4
             if isen%2 != 0:
                 self.sensors[isen].value = int(self.payload[4+stp:6+stp],16)
                 stp+=2
+
+class Instrument_dry_contacts(Instrument):
+    def __init__(self,message, *args, **kwargs):
+        super().__init__(message)
+        self.name = "dry-contacts"
+        self.periodic_df = int("40", 16)
+        self.chnls = 1
+        self.metadata['imageUrl'] = imageUrl_dry_contacts
+
+    def add_sensor(self):
+        chn = 0
+        while chn < self.chnls:
+            self.sensors.append(Sensor_dry_contacts())
+            self.sensors[chn].metadata['Channel'] = chn+1
+            chn+=1
+
+    """
+    payload:40c000080000000000000f
+    {
+      "frameCounter": 6,
+      "configurationDone": false,
+      "lowBattery": false,
+      "hardwareError": false,
+      "commandOutputDone": false,
+      "type": "DATA_FRAME",
+      "register": {
+        "eventCounterOfTor1": 8,
+        "eventCounterOfTor2": 0,
+        "eventCounterOfTor3": 0,
+        "eventCounterOfTor4": 0,
+        "currentStateTor1": true,
+        "previousFrameStateTor1": true,
+        "currentStateTor2": false,
+        "previousFrameStateTor2": true,
+        "currentStateTor3": false,
+        "previousFrameStateTor3": false,
+        "currentStateTor4": false,
+        "previousFrameStateTor4": false
+      }
+    }
+    """
+    def def_value(self):
+        if not self.sensors:
+            return None
+        stp = 0
+        for s in self.sensors:
+            s.value = int(struct.unpack('>h', bytes.fromhex(self.payload[8+stp:12+stp]))[0])
+            s.metadata["eventCounter"] = int(struct.unpack('>h', bytes.fromhex(self.payload[4+stp:8+stp]))[0])
+            stp+=4
 
 class Sensor():
     def __init__(self):
@@ -138,3 +189,9 @@ class Sensor_rh(Sensor):
         super().__init__()
         self.unit = "PERCENTS"
         self.type = "Humidity"
+
+class Sensor_dry_contacts(Sensor):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.unit = "GENERIC"
+        self.type = "Dry_contacts"

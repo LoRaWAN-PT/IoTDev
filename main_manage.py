@@ -42,6 +42,9 @@ def create_instr(data_in, map):
         instr = Instrument_temp(data_in)
     elif dd['DriverCfg']['mod']['mId'] == "comfort":
         instr = Instrument_comfort(data_in)
+    elif dd['DriverCfg']['mod']['mId'] == "dry-contacts":
+        #print(f"Create dry contacts")
+        instr = Instrument_dry_contacts(data_in)
 
     if not instr:
         print(f"line: {sys._getframe().f_lineno}: create_instr: NOT instr")
@@ -49,7 +52,7 @@ def create_instr(data_in, map):
 
     instr.def_type()
     if instr.msg_type != "Periodic data frame":
-        print(f"line: {sys._getframe().f_lineno}: create_instr: NOT Periodic data frame")
+        #print(f"line: {sys._getframe().f_lineno}: create_instr: NOT Periodic data frame")
         return None
 
     instr.fill_meta()
@@ -63,7 +66,13 @@ def form_signal_from_instruments(instrs):
     args = []
 
     for instr in instrs:
+        if instr.name == "dry-contacts":
+            print(f"instr.name:{instr.name},  instr.metadata:\n{instr.metadata}")
         for isen in instr.sensors:
+            if instr.name == "dry-contacts":
+                print(f"isen.type:{isen.type},isen.value:{isen.value},isen.unit:{isen.unit}")
+                print(f"isen.metadata:\n{isen.metadata}")
+
             arguments = {}
             arguments['point_id'] = instr.metadata['point_id']
             arguments['timestamp'] = instr.metadata['timestamp']
@@ -76,6 +85,9 @@ def form_signal_from_instruments(instrs):
 
             if 'Channel' in isen.metadata:
                 arguments['metadata']['Channel'] = isen.metadata['Channel']
+
+            if 'eventCounter' in isen.metadata:
+                arguments['metadata']['eventCounter'] = isen.metadata['eventCounter']
 
             arguments['unit'] = isen.unit
             arguments['value'] = isen.value
@@ -93,20 +105,16 @@ def form_signal_from_instruments(instrs):
 
 def proc_all_data(data_in,map):
     instrs = []
-    #cnt = 0
     for d in data_in:
-        #if cnt>10:
-        #    break
         iinstr = create_instr(d, map)
         if iinstr:
             instrs.append(iinstr)
-        #cnt+=1
 
     sgn_data = form_signal_from_instruments(instrs)
-    if sgn_data:
-        print(f"sgn_data:\n{sgn_data}")
-    else:
+    if not sgn_data:
         print(f"NO sgn_data")
+    """else:
+        print(f"sgn_data:\n{sgn_data}")"""
 
     for sd in sgn_data:
         signal_create(target, ten_id, ten_k, **sd)
@@ -140,6 +148,7 @@ print(f"map:{map}")
 proc_all_data(data_proc, map)
 
 #Remove the saved data from Webhook
+
 uuids = []
 for d in data:
     uuids.append(d['uuid'])
