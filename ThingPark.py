@@ -8,7 +8,6 @@ class Logger():
     def __init__(self):
         pass
 
-
 class Instrument():
     def __init__(self, message):
         self.message = message['DevEUI_uplink']
@@ -166,9 +165,11 @@ class Instrument_dry_contacts(Instrument):
         if not self.sensors:
             return None
         stp = 0
-        for s in self.sensors:
-            s.value = int(struct.unpack('>h', bytes.fromhex(self.payload[8+stp:12+stp]))[0])
-            s.metadata["eventCounter"] = int(struct.unpack('>h', bytes.fromhex(self.payload[4+stp:8+stp]))[0])
+        chnls_state = int(self.payload[20:],16)
+        for isen in range(len(self.sensors)):
+            self.sensors[isen].value = 1 if chnls_state & 2**(isen*2) else 0
+            #self.sensors[isen].metadata["prevState"] = 1 if chnls_state & 2**((isen+1)*2) else 0
+            self.sensors[isen].metadata["eventCounter"] = int(struct.unpack('>h', bytes.fromhex(self.payload[4+stp:8+stp]))[0])
             stp+=4
 
 class Sensor():

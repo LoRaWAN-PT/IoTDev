@@ -52,7 +52,7 @@ def create_instr(data_in, map):
 
     instr.def_type()
     if instr.msg_type != "Periodic data frame":
-        #print(f"line: {sys._getframe().f_lineno}: create_instr: NOT Periodic data frame")
+        print(f"line: {sys._getframe().f_lineno}: create_instr: NOT Periodic data frame")
         return None
 
     instr.fill_meta()
@@ -70,8 +70,7 @@ def form_signal_from_instruments(instrs):
             print(f"instr.name:{instr.name},  instr.metadata:\n{instr.metadata}")
         for isen in instr.sensors:
             if instr.name == "dry-contacts":
-                print(f"isen.type:{isen.type},isen.value:{isen.value},isen.unit:{isen.unit}")
-                print(f"isen.metadata:\n{isen.metadata}")
+                print(f"isen.type:{isen.type},isen.value:{isen.value},isen.unit:{isen.unit},isen.metadata:\n{isen.metadata}")
 
             arguments = {}
             arguments['point_id'] = instr.metadata['point_id']
@@ -148,7 +147,6 @@ print(f"map:{map}")
 proc_all_data(data_proc, map)
 
 #Remove the saved data from Webhook
-
 uuids = []
 for d in data:
     uuids.append(d['uuid'])
