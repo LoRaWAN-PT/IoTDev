@@ -1,4 +1,7 @@
 # DataLogging Platform Files - Use D4_API branch
+
+This repository contains files for datalogging LoRaWAN sensors' signals to Dimension Four Platform and is open-source.
+
 ![image](https://user-images.githubusercontent.com/103256074/201105364-9a954d69-e0a7-4dbe-ba0a-52004f6bfaf2.png)
 
 
